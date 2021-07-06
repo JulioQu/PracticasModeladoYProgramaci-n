@@ -3,97 +3,72 @@ import java.util.HashMap;
 
 public class Bank implements Subject{
 
-    private class Event{
-	private Transaction transaction;
-	private Service service1;
-	private Service service2;
-	private int deposit;
+    private ArrayList<Client> clients;
+    private Month currentMonth;
 
-	public Event(Transaction transaction,
-		     Service service1,
-		     Service service2,
-		     int deposit){
-	    this.transaction = transaction;
-	    this.service1 = service1;
-	    this.service2 = service2;
-	    this.deposit = deposit;
-	}
-
-	@Override
-	public String toString(){
-	    switch(transaction){
-	    case SERVICE_SUBSCRIPTION:
-		return String.format("Subscripción al servicio: %s.",
-				     service1.toString());
-		break;
-	    case SERVICE_CANCELLATION:
-		return String.format("Cancelación de servicio: %d.",
-				     service1.toString());
-		break;
-	    case SERVICE_UPDATE:
-		return String.format("Cambio de servicio %s a %s.",
-				     service1.toString(),
-				     service2.toString());
-		break;
-	    case DEPOSIT:
-		return String.format("Depósito de %d.",
-				     deposit);
-		break;
-	    case END_OF_MONTH_CHARGE:
-		return "End of month.";
-		break;
-	    case default:
-		return "";
-	    }
-	}
-
-    }
-
-    ArrayList<Client> clients;
-    HashMap<Client,ArrayList<Event>> eventsOfMonth;
-
-        
-    public Bank(){
+    public Bank(Month startMonth){
 	clients = new ArrayList();
+	currentMonth = startMonth;
+    }
+    public void registerClient(Client client){
+	registerObserver(client);
     }
 
     public void registerObserver(Observer client){
-	clients.add(client);
+	clients.add((Client)client);
     }
 
     public void removeObserver(Observer client){
-	if((int i = clients.indexOf(client)) >= 0){
+	int i = clients.indexOf(client);
+	if(i >= 0){
 	    clients.remove(i);
 	}
     }
 
-    public void notifyObservers(Transaction transaction,
-				Client client,
-				Service service1,
-				Service service2,
-				int deposit){
-	for(Observer client: clients){
-	    client.update(transaction,
-			  client,
-			  service1,
-			  service2,
-			  deposit);
+    public void notifyObservers(){
+	for(Client client : clients){
+	    client.update(currentMonth);
 	}
     }
 
-    public void doTransaction(Transaction transaction,
-			      Client client,
-			      Service service1,
-			      Service service2,
-			      int deposit){
-	if(transaction != Transaction.END_OF_MONTH){
-	    eventsOfMonth
-		.get(client)
-		.add(new Event(transaction,service1,service2,deposit));
-	}else{
-
-	}
-
+    public void endMonth(){
+	notifyObservers();
+	currentMonth = Month.numberToMonth(currentMonth.getNumber() +1);
     }
 
+    public void subscribeClientToService(Client client,
+					 Service service){
+	int i = clients.indexOf(client);
+	if(i >= 0){
+	    clients.get(i).subscribe(service);
+	}
+    }
+
+    public void changeClientService(Client client,
+				    Service service1,
+				    Service service2){
+	int i = clients.indexOf(client);
+	if(i >= 0){
+	    clients.get(i).changeService(service1,service2);
+	}
+    }
+
+    
+    public void unsubscribeClientToService(Client client,
+					   Service service){
+	int i = clients.indexOf(client);
+	if(i >= 0){
+	    clients.get(i).unsubscribe(service);
+	}
+    }
+
+    public void unsubscribeToAll(Client client){
+	client.unsubscribeToAll();
+    }
+
+    public void depositToClient(Client client,
+				Integer deposit){
+	client.deposit(deposit);
+    }
+    
 }

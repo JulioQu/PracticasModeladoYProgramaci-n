@@ -1,8 +1,0 @@
-
-public enum Transaction{
-    SERVICE_SUBSCRIPTION,
-    SERVICE_CANCELLATION,
-    SERVICE_UPDATE,
-    DEPOSIT,
-    END_OF_MONTH_CHARGE
-}
